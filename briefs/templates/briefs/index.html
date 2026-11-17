@@ -1,0 +1,217 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Brief Generator · Collabstr</title>
+  <meta name="description" content="Turn a campaign idea into a creator-ready brief in seconds.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'briefs/css/app.css' %}">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF4C8E'/%3E%3Cpath d='M9 11h14M9 16h14M9 21h9' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-link" href="#brief-form">Skip to the form</a>
+
+  <header class="ds-nav-topbar">
+    <div class="ds-container topbar">
+      <span class="wordmark" aria-label="Collabstr">collabstr</span>
+      <span class="topbar__divider" aria-hidden="true"></span>
+      <span class="topbar__title">Brief Generator</span>
+      <span class="ds-badge ds-badge--brand">Beta</span>
+    </div>
+  </header>
+
+  <main class="ds-container page">
+    <div class="ds-page-header">
+      <h1 class="ds-page-header__title">Create a campaign brief</h1>
+      <p class="ds-page-header__description">
+        Answer four quick questions and get a creator-ready brief you can edit and copy into your campaign.
+      </p>
+    </div>
+
+    <div class="layout">
+      <!-- ============ FORM ============ -->
+      <section class="ds-card form-card" aria-labelledby="form-title">
+        <h2 id="form-title" class="visually-hidden">Campaign details</h2>
+        <form id="brief-form" novalidate>
+          <div class="ds-form-field" data-field="brand_name">
+            <label class="ds-label" for="brand_name">Brand name</label>
+            <input class="ds-input" id="brand_name" name="brand_name" type="text"
+                   maxlength="60" autocomplete="organization" placeholder="e.g. Glow Lab"
+                   aria-describedby="brand_name-error" required>
+            <p class="ds-form-error" id="brand_name-error" hidden></p>
+          </div>
+
+          <fieldset class="ds-form-field" data-field="platform" aria-describedby="platform-error">
+            <legend class="ds-label">Target platform</legend>
+            <div class="ds-option-card-pills">
+              {% for value, label in platforms.items %}
+              <label class="ds-option-card ds-option-card--pill">
+                <input class="ds-option-card__input" type="radio" name="platform" value="{{ value }}" required>
+                <span class="platform-dot platform-dot--{{ value }}" aria-hidden="true"></span>
+                <span class="ds-option-card__label">{{ label }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            <p class="ds-form-helper">UGC = videos and photos you post or run as ads yourself.</p>
+            <p class="ds-form-error" id="platform-error" hidden></p>
+          </fieldset>
+
+          <fieldset class="ds-form-field" data-field="goal" aria-describedby="goal-error">
+            <legend class="ds-label">Campaign goal</legend>
+            <div class="ds-option-card-list">
+              <label class="ds-option-card">
+                <input class="ds-option-card__input" type="radio" name="goal" value="awareness" required>
+                <span class="ds-option-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                </span>
+                <span class="ds-option-card__text">
+                  <span class="ds-option-card__title">{{ goals.awareness }}</span>
+                  <span class="ds-option-card__description">Get your brand in front of new people</span>
+                </span>
+              </label>
+              <label class="ds-option-card">
+                <input class="ds-option-card__input" type="radio" name="goal" value="conversions">
+                <span class="ds-option-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                </span>
+                <span class="ds-option-card__text">
+                  <span class="ds-option-card__title">{{ goals.conversions }}</span>
+                  <span class="ds-option-card__description">Drive clicks, sign-ups or sales</span>
+                </span>
+              </label>
+              <label class="ds-option-card">
+                <input class="ds-option-card__input" type="radio" name="goal" value="content_assets">
+                <span class="ds-option-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8z"/></svg>
+                </span>
+                <span class="ds-option-card__text">
+                  <span class="ds-option-card__title">{{ goals.content_assets }}</span>
+                  <span class="ds-option-card__description">Collect videos and photos for ads and social</span>
+                </span>
+              </label>
+            </div>
+            <p class="ds-form-error" id="goal-error" hidden></p>
+          </fieldset>
+
+          <fieldset class="ds-form-field" data-field="tone" aria-describedby="tone-error">
+            <legend class="ds-label">Tone</legend>
+            <div class="ds-option-card-pills">
+              {% for value, label in tones.items %}
+              <label class="ds-option-card ds-option-card--pill">
+                <input class="ds-option-card__input" type="radio" name="tone" value="{{ value }}" required>
+                <span class="ds-option-card__label">{{ label }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            <p class="ds-form-error" id="tone-error" hidden></p>
+          </fieldset>
+
+          <div class="ds-form-field" data-field="product_note">
+            <label class="ds-label" for="product_note">
+              What are you promoting? <span class="label-optional">Optional</span>
+            </label>
+            <textarea class="ds-textarea" id="product_note" name="product_note" rows="3" maxlength="280"
+                      placeholder="e.g. Our new vitamin C serum for sensitive skin, launching in May"
+                      aria-describedby="product_note-help product_note-error"></textarea>
+            <div class="field-footer">
+              <p class="ds-form-helper" id="product_note-help">A product or offer makes the brief more specific.</p>
+              <span class="char-count" id="product_note-count" aria-hidden="true">0/280</span>
+            </div>
+            <p class="ds-form-error" id="product_note-error" hidden></p>
+          </div>
+
+          <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg ds-btn--full" id="generate-btn">
+            <svg class="ds-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.8L20 10.7l-5.6 2.5L12 19l-2.4-5.8L4 10.7l6.1-1.9z"/></svg>
+            <span class="ds-btn__label">Generate brief</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- ============ RESULT ============ -->
+      <section class="result" aria-labelledby="result-heading" id="result">
+        <h2 id="result-heading" class="visually-hidden">Your brief</h2>
+
+        <div class="ds-card state state--empty" data-state="empty">
+          <div class="ds-empty">
+            <span class="ds-empty__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8m8 4H8m8 4H8"/></svg>
+            </span>
+            <p class="ds-empty__title">Your brief will appear here</p>
+            <p class="ds-empty__description">You'll get a ready-to-edit draft with:</p>
+            <ul class="tag-row" aria-label="What's included">
+              <li class="ds-tag">Campaign brief</li>
+              <li class="ds-tag">Content angles</li>
+              <li class="ds-tag">Creator criteria</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ds-card state state--loading" data-state="loading" hidden aria-hidden="true">
+          <p class="loading-note"><span class="ds-spinner" aria-hidden="true"></span> Writing your brief… this usually takes 10–20 seconds.</p>
+          <div class="ds-skeleton ds-skeleton--title"></div>
+          <div class="ds-skeleton ds-skeleton--line"></div>
+          <div class="ds-skeleton ds-skeleton--line"></div>
+          <div class="ds-skeleton ds-skeleton--line short"></div>
+          <div class="skeleton-grid">
+            <div class="ds-skeleton ds-skeleton--block"></div>
+            <div class="ds-skeleton ds-skeleton--block"></div>
+            <div class="ds-skeleton ds-skeleton--block"></div>
+          </div>
+        </div>
+
+        <div class="state" data-state="error" hidden>
+          <div class="ds-alert ds-alert--error" role="alert">
+            <svg class="ds-alert__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+            <div class="ds-alert__body">
+              <p class="ds-alert__title">Something went wrong</p>
+              <p class="ds-alert__message" id="error-message"></p>
+              <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" id="retry-btn">Try again</button>
+            </div>
+          </div>
+        </div>
+
+        <article class="ds-card brief state" data-state="success" hidden aria-labelledby="brief-title">
+          <header class="brief__header">
+            <div class="brief__meta">
+              <ul class="tag-row" id="brief-tags" aria-label="Campaign settings"></ul>
+              <span class="ds-badge ds-badge--warning" id="demo-badge" hidden
+                    title="No AI key is configured on this server, so this is templated sample content.">Demo content</span>
+            </div>
+            <h3 class="brief__title editable" id="brief-title" tabindex="-1" data-key="campaign_title"></h3>
+            <p class="brief__hint">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.4 3.6a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/></svg>
+              Click any text to edit it before you copy.
+            </p>
+            <div class="brief__actions">
+              <button type="button" class="ds-btn ds-btn--primary" id="copy-btn">
+                <svg class="ds-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <span class="ds-btn__label">Copy brief</span>
+              </button>
+              <button type="button" class="ds-btn ds-btn--secondary" id="regenerate-btn">
+                <svg class="ds-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m5 0H3v5"/></svg>
+                <span class="ds-btn__label">Regenerate</span>
+              </button>
+            </div>
+          </header>
+
+          <div class="brief__body" id="brief-body"></div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div class="ds-toast ds-toast--success" id="toast" role="status" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+    <span id="toast-message"></span>
+  </div>
+  <div class="visually-hidden" aria-live="polite" id="live-region"></div>
+
+  <noscript><p class="noscript">This tool needs JavaScript to generate briefs.</p></noscript>
+
+  <script src="{% static 'briefs/vendor/jquery-3.7.1.min.js' %}"></script>
+  <script src="{% static 'briefs/js/app.js' %}"></script>
+</body>
+</html>

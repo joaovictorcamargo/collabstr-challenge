@@ -19,9 +19,10 @@ DEBUG = env_bool("DJANGO_DEBUG", default=False)
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
-    if not DEBUG and "pytest" not in sys.modules:
+    # Tests and the mypy Django plugin import settings without a real key.
+    if not DEBUG and not ({"pytest", "mypy"} & set(sys.modules)):
         raise RuntimeError("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is false.")
-    SECRET_KEY = "dev-only-insecure-key"  # noqa: S105 - only used in DEBUG/tests
+    SECRET_KEY = "dev-only-insecure-key"  # noqa: S105 - DEBUG/tooling only
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 # Render exposes the public hostname here; trust it automatically.
