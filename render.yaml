@@ -24,5 +24,7 @@ services:
         value: auto
       - key: TRUSTED_PROXY_COUNT
         value: "1" # Render's proxy appends the client IP to X-Forwarded-For
+      - key: BRIEF_DAILY_LIMIT
+        value: "200" # spend guard: ~200 briefs/day per worker (~$7 at measured cost)
       - key: BRIEF_RATE_LIMIT_PER_MIN
         value: "10"

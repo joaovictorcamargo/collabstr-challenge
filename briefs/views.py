@@ -70,6 +70,14 @@ def generate_brief(request: HttpRequest) -> JsonResponse:
         fields = {name: [str(e) for e in errors] for name, errors in form.errors.items()}
         return _error(400, "invalid_input", "Check the highlighted fields.", fields=fields)
 
+    # Counted only for valid requests, so typos don't use up the day's budget.
+    if not ratelimit.allow("briefs-daily", "all", settings.BRIEF_DAILY_LIMIT, 24 * 60 * 60):
+        return _error(
+            429,
+            "daily_limit_reached",
+            "This demo has reached today's generation limit. Please try again tomorrow.",
+        )
+
     inputs = form.to_inputs()
     request_id = uuid.uuid4().hex
     started = time.monotonic()

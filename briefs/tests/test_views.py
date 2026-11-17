@@ -166,6 +166,29 @@ def test_generate_rate_limited(client, stub, settings):
     assert len(stub.calls) == 2
 
 
+def test_daily_cap_stops_generation_across_clients(client, stub, settings):
+    settings.BRIEF_DAILY_LIMIT = 2
+    settings.TRUSTED_PROXY_COUNT = 1
+    for ip in ("1.1.1.1", "2.2.2.2"):
+        assert post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR=ip).status_code == 200
+    response = post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR="3.3.3.3")
+    assert response.status_code == 429
+    assert response.json()["error"]["code"] == "daily_limit_reached"
+    assert len(stub.calls) == 2
+
+
+def test_invalid_requests_do_not_use_daily_cap(client, stub, settings):
+    settings.BRIEF_DAILY_LIMIT = 1
+    assert post_json(client, API, {**VALID_INPUT, "tone": "angry"}).status_code == 400
+    assert post_json(client, API, VALID_INPUT).status_code == 200
+
+
+def test_healthcheck_is_exempt_from_https_redirect(client, settings):
+    settings.SECURE_SSL_REDIRECT = True
+    assert client.get("/healthz").status_code == 200
+    assert client.get("/").status_code == 301
+
+
 def test_rate_limit_ignores_forwarded_for_without_trusted_proxy(client, stub, settings):
     settings.BRIEF_RATE_LIMIT_PER_MIN = 1
     settings.TRUSTED_PROXY_COUNT = 0

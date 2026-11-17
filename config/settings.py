@@ -85,6 +85,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 CSRF_COOKIE_HTTPONLY = False  # the jQuery client reads it to send X-CSRFToken
+# Platform health probes may arrive over plain HTTP inside the host's network.
+SECURE_REDIRECT_EXEMPT = [r"^healthz$"]
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
@@ -100,6 +102,8 @@ ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-5-5")
 ANTHROPIC_TIMEOUT_SECONDS = float(os.environ.get("ANTHROPIC_TIMEOUT_SECONDS", "40"))
 BRIEF_GENERATOR = os.environ.get("BRIEF_GENERATOR", "auto")  # auto | anthropic | demo
 BRIEF_RATE_LIMIT_PER_MIN = int(os.environ.get("BRIEF_RATE_LIMIT_PER_MIN", "10"))
+# Global spend guard for a public demo: max LLM generations per day (per worker process).
+BRIEF_DAILY_LIMIT = int(os.environ.get("BRIEF_DAILY_LIMIT", "200"))
 # Number of reverse proxies in front of the app that append to X-Forwarded-For.
 # 0 = ignore the header (direct traffic, local dev). Render: 1.
 TRUSTED_PROXY_COUNT = int(os.environ.get("TRUSTED_PROXY_COUNT", "0"))
