@@ -141,11 +141,27 @@
   }
 
   // On stacked (mobile/tablet) layouts the result sits below the form: bring it into view.
+  // Scroll the result's top into view if it's off-screen (always on stacked layouts;
+  // on desktop when the user has scrolled down to the Generate button).
   function revealResult() {
-    if (!window.matchMedia("(max-width: 1023px)").matches) { return; }
+    var navHeight = $(".ds-nav-topbar").outerHeight() || 0;
+    var rectTop = $result[0].getBoundingClientRect().top;
+    if (rectTop >= navHeight && rectTop < window.innerHeight * 0.5) { return; }
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var top = $result.offset().top - $(".ds-nav-topbar").outerHeight() - 12;
+    var top = $result.offset().top - navHeight - 12;
     window.scrollTo({ top: Math.max(top, 0), behavior: reduce ? "auto" : "smooth" });
+  }
+
+  // Count [bracketed] placeholders the model left for the brand to fill in.
+  function updatePlaceholderHint() {
+    var matches = briefAsText().match(/\[[^\]\n]{1,60}\]/g) || [];
+    var $hint = $("#placeholder-hint");
+    if (!matches.length) { $hint.prop("hidden", true); return; }
+    var example = matches[0];
+    $hint.find("span").text(matches.length === 1
+      ? "1 placeholder to fill in before sharing: " + example
+      : matches.length + " placeholders to fill in before sharing, like " + example);
+    $hint.prop("hidden", false);
   }
 
   function focusResultHeading() {
@@ -188,6 +204,7 @@
         state.lastPayload = payload;
         state.hasBrief = true;
         renderBrief(data.brief, payload, data.meta || {});
+        updatePlaceholderHint();
         setState("success");
         announce("Your brief is ready. You can edit any text, then copy it.");
         focusResultHeading();
@@ -378,7 +395,10 @@
 
   $("#copy-btn").on("click", copyBrief);
 
+  var hintTimer = null;
   $result.on("input", ".editable", function () {
+    window.clearTimeout(hintTimer);
+    hintTimer = window.setTimeout(updatePlaceholderHint, 300);
     if (!state.edited) {
       state.edited = true;
       track("brief_edited");

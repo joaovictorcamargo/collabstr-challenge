@@ -17,3 +17,4 @@
 | 13 | Anthropic 4xx → 503 + ERROR log, not 502 | Inputs are validated first, so a 4xx is our bug or config; telling users to "tweak inputs" would mislead. | — |
 | 14 | Content-Security-Policy via a 20-line middleware | No inline scripts, so `script-src 'self'` is free hardening against XSS. | Google Fonts allowed explicitly. |
 | 15 | Confirm before Regenerate discards edits | Edits are the user's work; losing them silently is the worst failure of the chosen interaction. | One native confirm dialog. |
+| 16 | Placeholder counter next to Copy | Live briefs contain many `[placeholders]`; a brand pasting `[discount code]` to creators is the most likely real-world failure of the chosen interaction. | Counts brackets with a regex; a literal bracket in brand text would be counted too. |

@@ -43,6 +43,12 @@ def healthz(request: HttpRequest) -> HttpResponse:
     return HttpResponse("ok", content_type="text/plain")
 
 
+@require_safe
+def favicon(request: HttpRequest) -> HttpResponse:
+    """The page uses an inline SVG icon; answer browsers' default probe without a 404."""
+    return HttpResponse(status=204)
+
+
 @require_POST
 def generate_brief(request: HttpRequest) -> JsonResponse:
     ip = ratelimit.client_ip(request)

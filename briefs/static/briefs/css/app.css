@@ -232,6 +232,9 @@ button { font: inherit; }
 .brief__hint { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2);
   font-size: var(--font-size-xs); color: var(--color-text-subtlest); }
 .brief__hint svg { width: 14px; height: 14px; }
+.brief__placeholders { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2);
+  font-size: var(--font-size-xs); color: var(--orange-700); font-weight: 500; }
+.brief__placeholders svg { width: 14px; height: 14px; }
 .brief__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
 .brief__body { padding: var(--space-2) var(--space-6) var(--space-6); }
 .brief-section { padding-top: var(--space-6); }

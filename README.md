@@ -1,7 +1,7 @@
 # AI Brief Generator for Collabstr
 
-A brand gives four inputs (brand, platform, goal, tone), plus an optional product note. Within
-seconds it gets back an editable campaign brief, content angles, and creator selection criteria,
+A brand gives four inputs (brand, platform, goal, tone), plus an optional product note. In about
+15 seconds it gets back an editable campaign brief, content angles, and creator selection criteria,
 and can copy the result straight into a campaign or a message to creators.
 
 **Live demo:** _add URL after deploy_ · **Loom:** _add URL_ · **Stack:** Django 5.2 · jQuery 3.7 · Claude (Anthropic API)
@@ -44,7 +44,7 @@ Django view ─ rate limit (per IP) ─ BriefRequestForm (validation)
   |---|---|
   | Logs as analytics sink | Send events to the existing analytics pipeline (Segment/Amplitude), join to campaign creation |
   | LocMem rate limit (per process) | Redis-backed limits per account plus a daily spend cap |
-  | One blocking request (latency not yet measured live) | Stream sections as they generate; cache by input hash |
+  | One blocking request (~16s measured) | Stream sections as they generate; cache by input hash |
   | Copy to clipboard | "Use this brief" that pre-fills Collabstr's campaign form |
   | Demo generator when no key | Remove, or keep only for previews |
   | Unit + API tests, manual browser QA | Playwright E2E in CI, a small eval set of briefs scored by a rubric and an LLM judge |
@@ -60,11 +60,12 @@ Django view ─ rate limit (per IP) ─ BriefRequestForm (validation)
 ## 4. Validation and iteration
 
 **What was tested**
-- 101 automated tests (`uv run pytest`): form validation, the `Brief` schema and its strictness for structured outputs, prompt building (including tag-injection escaping), every generator failure mode (refusal, truncation, bad JSON, fewer than 3 angles or criteria, timeout, 429, 5xx, 400/401/404, unexpected SDK errors), API status codes, CSRF enforcement, rate limiting (including spoofed and rotated `X-Forwarded-For`), non-string JSON values, CSP header, and events. The Claude client is faked; tests never call the API.
+- 104 automated tests (`uv run pytest`): form validation, the `Brief` schema and its strictness for structured outputs, prompt building (including tag-injection escaping), every generator failure mode (refusal, truncation, bad JSON, fewer than 3 angles or criteria, timeout, 429, 5xx, 400/401/404, unexpected SDK errors), API status codes, CSRF enforcement, rate limiting (including spoofed and rotated `X-Forwarded-For`), non-string JSON values, CSP header, and events. The Claude client is faked; tests never call the API.
 - Ruff + mypy (strict) clean; CI workflow runs all of it plus `collectstatic` and `check --deploy`.
 - Browser QA (built-in browser): validation messages and focus, keyboard-only selection, loading lock (no double submit), success render, editing and copy output, the real error path (an invalid API key hits Anthropic, gets 401, and the UI shows a friendly 503 message with inputs kept), 375px layout with no horizontal scroll, a scripted WCAG contrast check, labels, heading order.
 - Production smoke test: gunicorn + WhiteNoise serving hashed static files, `/healthz`, security headers.
-- **Not verified here:** a successful live Claude response. No API key was available in the build environment, so the request was confirmed to reach the API (it got as far as authentication), and response handling is covered by tests with fakes of the SDK's response shape. Run one real generation after setting `ANTHROPIC_API_KEY`.
+- **Live Claude check** (scripted, 4 input combinations plus a prompt-injection probe): all returned valid briefs in 15–20s, using about 1.7k input and 1.3–1.5k output tokens, **≈ $0.035 per brief** on Opus 5.5. Each was checked for brand and platform mentions, ≥3 angles and criteria, no invented prices, usage rights on UGC briefs, and a conversion signal on Conversions briefs. The injection note ("ignore all previous instructions…") was ignored.
+- **What the live run changed:** the model once explained the placeholder rule inside a brief and once titled a campaign "…On Us…" (implying a free offer), so the prompt now forbids both. Real briefs carry up to ~17 `[placeholders]`, so the UI now shows how many are left to fill in before sharing, updating as you edit.
 
 **What I'd measure**
 - Adoption rate (copied ÷ generated) by platform/goal/tone; edit rate and how much gets edited (heavy edits mean weak drafts); regenerate rate; p95 latency; error rate by code.
@@ -72,7 +73,7 @@ Django view ─ rate limit (per IP) ─ BriefRequestForm (validation)
 - Qualitative: a thumbs up/down on the brief plus 5 brand interviews about what they changed before sending.
 
 **What I'd improve next**
-1. "Use this brief" → pre-fill Collabstr's campaign form (deeper hand-off, cleaner metric).
+1. "Use this brief" → pre-fill Collabstr's campaign form (deeper hand-off, cleaner metric). Pre-fill known placeholders ([discount code], [link]) from the brand's account.
 2. Streaming output to cut perceived latency.
 3. An eval set of ~30 input combinations scored against a rubric before any model or prompt change.
 4. Optional inputs (budget, timeline, audience) only if the data shows briefs being edited for those reasons.
@@ -117,7 +118,6 @@ uv run mypy .
 
 ## 7. Tradeoffs and not done in the timebox
 
-- No live LLM response verified in the build environment (no key); see above.
 - No browser E2E suite: browser QA was manual, with backend logic covered by tests.
 - In-memory rate limiting is per process; fine for one small instance, not for a fleet. `TRUSTED_PROXY_COUNT=1` for Render is an assumption about its proxy chain; confirm against the real headers after the first deploy.
 - Analytics are log lines; computing the metric needs a log drain or analytics tool.

@@ -83,6 +83,15 @@ class AnthropicBriefGenerator:
             logger.error("anthropic error: %s", type(exc).__name__)
             raise GenerationUnavailable(str(exc)) from exc
 
+        usage = getattr(response, "usage", None)
+        if usage is not None:  # token counts for cost tracking; no prompt or output content
+            logger.info(
+                "anthropic usage model=%s input_tokens=%s output_tokens=%s",
+                getattr(response, "model", self.model),
+                getattr(usage, "input_tokens", "?"),
+                getattr(usage, "output_tokens", "?"),
+            )
+
         if response.stop_reason != "end_turn":
             logger.warning("anthropic stop_reason=%s", response.stop_reason)
             raise GenerationFailed(f"stop_reason={response.stop_reason}")

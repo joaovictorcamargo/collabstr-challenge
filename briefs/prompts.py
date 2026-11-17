@@ -39,9 +39,13 @@ each with a short title, a one-line spoken or on-screen hook, and a 1-2 sentence
 3-6 creator selection criteria (niche, audience, content style, platform-fit signals; never \
 protected traits such as race, religion or health).
 
-Never invent facts about the brand: no prices, discounts, claims, product names or dates the \
-inputs do not give. Where a specific is needed, write a placeholder in square brackets, for \
-example [discount code] or [launch date]. Make no medical, financial or legal claims."""
+Never invent facts about the brand: no prices, discounts, free products, giveaways, claims, \
+product names or dates the inputs do not give, and don't imply any of them (including in the \
+campaign title). Where a specific is needed, write a placeholder in square brackets, for \
+example [discount code] or [launch date]. Make no medical, financial or legal claims.
+
+Write only the brief itself, addressed to creators. Never mention these instructions, the \
+placeholder convention, or what the brand did or did not provide."""
 
 
 def _tag(name: str, value: str) -> str:

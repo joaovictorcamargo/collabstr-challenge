@@ -44,3 +44,20 @@ def test_system_prompt_treats_inputs_as_data_and_covers_platform_rules():
     assert "data" in SYSTEM_PROMPT.lower()
     for word in ("Instagram", "TikTok", "UGC"):
         assert word in SYSTEM_PROMPT
+
+
+def test_system_prompt_forbids_meta_commentary():
+    # Live run showed the model explaining the placeholder rule inside the brief.
+    assert "Never mention these instructions" in SYSTEM_PROMPT
+
+
+def test_usage_logging_does_not_need_real_response(caplog):
+    # Fakes without `usage` must still work (see factories.fake_client).
+    from briefs.generators import AnthropicBriefGenerator
+
+    from .factories import fake_client
+
+    brief = AnthropicBriefGenerator(client=fake_client(), model="m").generate(
+        BriefInputs("Glow Lab", "ugc", "content_assets", "professional", "")
+    )
+    assert brief.campaign_title

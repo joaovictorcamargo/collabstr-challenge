@@ -9,7 +9,8 @@
 - [x] QA: tests, lint, types, browser flow, 375px layout, keyboard + contrast pass, production build (`collectstatic`, `check --deploy`, gunicorn smoke test)
 - [x] Independent code review and fixes (see decisions 13–15)
 - [x] Delivery: README write-up, deploy config (Render/Procfile), CI, demo script
-- [ ] Owner: set `ANTHROPIC_API_KEY`, run one live generation, deploy, push public repo, record Loom, email links
+- [x] Live Claude integration verified (scripted cases + browser)
+- [ ] Owner: deploy, push public repo, record Loom, email links
 
 ## Requirement verification
 
@@ -20,10 +21,10 @@
 | F6–F8 | Done | `Brief` schema; rendered sections; `test_schemas.py`, `test_views.py` |
 | F9, F10 | Done | Edit in place + Copy brief; verified in browser (copied text includes edits) |
 | F11 | Done | Empty/loading/success/error states; verified in browser incl. real 401 path |
-| F12 | Done (code) | `AnthropicBriefGenerator`; live success not run here (no API key) |
+| F12 | Done | Live: 4 scripted cases + 3 browser runs, all valid (~16s, ~$0.035/brief) |
 | T1, T2 | Done | Django 5.2; HTML/CSS + jQuery 3.7.1 |
 | T3 | Done | DS tokens/components; deviations documented in `design-notes.md` |
-| T4, T5 | Done | No DB, typed errors, rate limit, CSP; 101 tests, Ruff, mypy strict, CI |
+| T4, T5 | Done | No DB, typed errors, rate limit, CSP; 104 tests, Ruff, mypy strict, CI |
 | D1–D7 | Done | `README.md` sections 1–7 |
 | AC1 | Done | ≥3 angles/criteria enforced server-side |
 | AC2 | Done | Field errors client + server, first invalid field focused |

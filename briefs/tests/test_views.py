@@ -74,6 +74,10 @@ def test_index_renders_form_and_sets_csrf_cookie(client):
     assert "csrftoken" in response.cookies
 
 
+def test_favicon_probe_is_not_a_404(client):
+    assert client.get("/favicon.ico").status_code == 204
+
+
 def test_healthcheck(client):
     response = client.get("/healthz")
     assert response.status_code == 200
