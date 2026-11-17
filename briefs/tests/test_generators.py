@@ -82,6 +82,11 @@ def test_schema_mismatch_is_generation_failed():
         status_error(anthropic.RateLimitError, 429),
         status_error(anthropic.InternalServerError, 500),
         status_error(anthropic.AuthenticationError, 401),
+        status_error(anthropic.NotFoundError, 404),
+        status_error(anthropic.BadRequestError, 400),
+        anthropic.APIResponseValidationError(
+            response=httpx2.Response(200, request=REQUEST), body=None
+        ),
     ],
 )
 def test_api_errors_are_generation_unavailable(error):
@@ -90,10 +95,27 @@ def test_api_errors_are_generation_unavailable(error):
         AnthropicBriefGenerator(client=client, model="m").generate(INPUTS)
 
 
-def test_bad_request_is_generation_failed():
-    client = fake_client(error=status_error(anthropic.BadRequestError, 400))
+def test_config_errors_are_logged_as_errors(caplog):
+    # Inputs are validated before the call, so a 400/401/404 means our config is wrong:
+    # retrying or editing inputs can't fix it, and someone needs to be paged.
+    client = fake_client(error=status_error(anthropic.NotFoundError, 404))
+    with pytest.raises(GenerationUnavailable):
+        AnthropicBriefGenerator(client=client, model="typo").generate(INPUTS)
+    assert any(r.levelname == "ERROR" for r in caplog.records)
+
+
+def test_too_few_angles_is_generation_failed():
+    payload = brief_payload()
+    payload["content_angles"] = payload["content_angles"][:2]
+    client = fake_client(text=json.dumps(payload))
     with pytest.raises(GenerationFailed):
         AnthropicBriefGenerator(client=client, model="m").generate(INPUTS)
+
+
+def test_client_is_reused_between_requests(settings):
+    settings.BRIEF_GENERATOR = "anthropic"
+    settings.ANTHROPIC_API_KEY = "sk-test"
+    assert get_generator().client is get_generator().client
 
 
 # --- Demo generator ------------------------------------------------------

@@ -41,6 +41,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "config.middleware.ContentSecurityPolicyMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -99,6 +100,9 @@ ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-5-5")
 ANTHROPIC_TIMEOUT_SECONDS = float(os.environ.get("ANTHROPIC_TIMEOUT_SECONDS", "40"))
 BRIEF_GENERATOR = os.environ.get("BRIEF_GENERATOR", "auto")  # auto | anthropic | demo
 BRIEF_RATE_LIMIT_PER_MIN = int(os.environ.get("BRIEF_RATE_LIMIT_PER_MIN", "10"))
+# Number of reverse proxies in front of the app that append to X-Forwarded-For.
+# 0 = ignore the header (direct traffic, local dev). Render: 1.
+TRUSTED_PROXY_COUNT = int(os.environ.get("TRUSTED_PROXY_COUNT", "0"))
 
 LOGGING = {
     "version": 1,

@@ -28,8 +28,10 @@ Responses:
 | 400 | `{"error": {"code": "invalid_input", "message": str, "fields": {name: [msg]}}}` | Validation failed / malformed JSON |
 | 405 | Django default | Not POST |
 | 429 | `{"error": {"code": "rate_limited", "message": str}}` | > N requests/min per client |
-| 502 | `{"error": {"code": "generation_failed", "message": str}}` | LLM refused or returned invalid output |
-| 503 | `{"error": {"code": "generation_unavailable", "message": str}}` | LLM timeout/overloaded/not configured |
+| 502 | `{"error": {"code": "generation_failed", "message": str}}` | LLM refused, was truncated, or returned output that fails the `Brief` model |
+| 503 | `{"error": {"code": "generation_unavailable", "message": str}}` | LLM timeout, rate limit, outage, or a config error (any 4xx from Anthropic: inputs are already validated, so a 4xx means our request/config is wrong; logged at ERROR) |
+
+Non-string JSON values for any field → 400 `invalid_input`.
 
 `Brief` schema (also the LLM's JSON schema):
 ```
@@ -44,6 +46,8 @@ content_angles: [{title: str, hook: str, description: str}] (3–5)
 creator_criteria: [{criterion: str, detail: str}] (3–6)
 ```
 Server validates model output against this schema (Pydantic) before returning it; anything else is a 502.
+Hard minimums enforced server-side (AC1): 3 content angles, 3 creator criteria. Other counts are prompt
+guidance with lenient bounds (1–6 deliverables, 1–8 do's/don'ts), so a slightly off count isn't an error.
 
 ## API: `POST /api/events/`
 `{"event": "brief_copied"|"brief_edited"|"brief_regenerated", "request_id": str}` → 204.
@@ -64,12 +68,19 @@ Logged as one JSON line for analytics; unknown events → 400. Rate-limited and 
 ## Copy format
 Plain text with headings and bullet lines, using the *edited* content, e.g.
 ```
-Glow Lab — TikTok campaign brief
-Goal: Awareness · Tone: Playful
+<campaign title>
+TikTok · Awareness · Playful · Glow Lab
 
 SUMMARY
 ...
+DELIVERABLES
+- item
+...
 CONTENT ANGLES
-1. Title — hook
+1. Title
+   Hook: "hook"
    description
+
+CREATOR SELECTION CRITERIA
+- Criterion: detail
 ```

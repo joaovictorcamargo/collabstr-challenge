@@ -2,20 +2,26 @@
 
 import time
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest
 
 
 def client_ip(request: HttpRequest) -> str:
-    """Best-effort client IP.
+    """Client IP for rate limiting.
 
-    Behind one reverse proxy (Render), the proxy appends the real client IP as the
-    *last* X-Forwarded-For entry; anything to the left is client-controlled.
+    Each trusted reverse proxy appends the address it received the request from to
+    X-Forwarded-For, so with N trusted proxies the real client is the N-th entry from
+    the right; everything further left is client-controlled. With no trusted proxy
+    (TRUSTED_PROXY_COUNT=0) the header is ignored entirely.
     """
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded:
-        return str(forwarded).split(",")[-1].strip()
-    return str(request.META.get("REMOTE_ADDR", "unknown"))
+    hops = settings.TRUSTED_PROXY_COUNT
+    remote = str(request.META.get("REMOTE_ADDR", "unknown"))
+    if hops <= 0:
+        return remote
+    entries = [e.strip() for e in str(request.META.get("HTTP_X_FORWARDED_FOR", "")).split(",")]
+    entries = [e for e in entries if e]
+    return entries[-hops] if len(entries) >= hops else remote
 
 
 def allow(scope: str, key: str, limit: int, window_seconds: int = 60) -> bool:

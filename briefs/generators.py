@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+from functools import lru_cache
 from typing import Any, Protocol
 
 import anthropic
@@ -33,7 +34,7 @@ class GenerationFailed(GenerationError):
 class GenerationUnavailable(GenerationError):
     """The model could not be reached (timeout, rate limit, outage, misconfiguration)."""
 
-    user_message = "Our brief writer is busy right now. Please try again in a moment."
+    user_message = "We can't generate briefs right now. Please try again in a moment."
 
 
 class BriefGenerator(Protocol):
@@ -65,13 +66,21 @@ class AnthropicBriefGenerator:
                 betas=[FALLBACK_BETA],
                 fallbacks="default",
             )
-        except (anthropic.APITimeoutError, anthropic.APIConnectionError) as exc:
+        except anthropic.APIConnectionError as exc:  # includes APITimeoutError
             logger.warning("anthropic unreachable: %s", type(exc).__name__)
             raise GenerationUnavailable(str(exc)) from exc
         except anthropic.APIStatusError as exc:
-            logger.warning("anthropic status %s: %s", exc.status_code, type(exc).__name__)
-            if exc.status_code in {400, 404, 413, 422}:
-                raise GenerationFailed(str(exc)) from exc
+            if exc.status_code < 500 and exc.status_code not in {408, 409, 429}:
+                # Inputs are validated before this call, so a 4xx means our request or
+                # config is wrong (bad model id, key, schema). Editing inputs won't help.
+                logger.error(
+                    "anthropic rejected request: %s %s", exc.status_code, type(exc).__name__
+                )
+            else:
+                logger.warning("anthropic status %s: %s", exc.status_code, type(exc).__name__)
+            raise GenerationUnavailable(str(exc)) from exc
+        except anthropic.APIError as exc:  # e.g. response that doesn't match the SDK's types
+            logger.error("anthropic error: %s", type(exc).__name__)
             raise GenerationUnavailable(str(exc)) from exc
 
         if response.stop_reason != "end_turn":
@@ -189,9 +198,11 @@ def get_generator() -> BriefGenerator:
         return DemoBriefGenerator()
     if not has_key:
         raise GenerationUnavailable("ANTHROPIC_API_KEY is not configured")
-    client = anthropic.Anthropic(
-        api_key=settings.ANTHROPIC_API_KEY,
-        timeout=settings.ANTHROPIC_TIMEOUT_SECONDS,
-        max_retries=1,
-    )
+    client = _client(settings.ANTHROPIC_API_KEY, settings.ANTHROPIC_TIMEOUT_SECONDS)
     return AnthropicBriefGenerator(client=client, model=settings.ANTHROPIC_MODEL)
+
+
+@lru_cache(maxsize=2)
+def _client(api_key: str, timeout: float) -> anthropic.Anthropic:
+    """One client (and connection pool) per process, not per request."""
+    return anthropic.Anthropic(api_key=api_key, timeout=timeout, max_retries=1)

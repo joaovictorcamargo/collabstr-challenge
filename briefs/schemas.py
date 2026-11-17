@@ -67,8 +67,8 @@ class Brief(_Strict):
     deliverables: list[Text] = Field(min_length=1, max_length=6)
     dos: list[Text] = Field(min_length=1, max_length=8)
     donts: list[Text] = Field(min_length=1, max_length=8)
-    content_angles: list[ContentAngle] = Field(min_length=2, max_length=6)
-    creator_criteria: list[CreatorCriterion] = Field(min_length=2, max_length=8)
+    content_angles: list[ContentAngle] = Field(min_length=3, max_length=6)
+    creator_criteria: list[CreatorCriterion] = Field(min_length=3, max_length=8)
 
 
 def _obj(properties: dict[str, Any]) -> dict[str, Any]:

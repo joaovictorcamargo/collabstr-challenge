@@ -24,7 +24,9 @@ def test_missing_section_is_rejected():
     ("field", "value"),
     [
         ("content_angles", []),
+        ("content_angles", brief_payload()["content_angles"][:2]),
         ("creator_criteria", []),
+        ("creator_criteria", brief_payload()["creator_criteria"][:2]),
         ("summary", ""),
         ("dos", ["x"] * 9),
     ],

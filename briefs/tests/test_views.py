@@ -162,14 +162,37 @@ def test_generate_rate_limited(client, stub, settings):
     assert len(stub.calls) == 2
 
 
-def test_rate_limit_uses_last_forwarded_ip(client, stub, settings):
+def test_rate_limit_ignores_forwarded_for_without_trusted_proxy(client, stub, settings):
     settings.BRIEF_RATE_LIMIT_PER_MIN = 1
+    settings.TRUSTED_PROXY_COUNT = 0
+    first = post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR="1.1.1.1")
+    rotated = post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR="2.2.2.2")
+    assert first.status_code == 200
+    assert rotated.status_code == 429  # a fake header can't buy a fresh bucket
+
+
+def test_rate_limit_uses_ip_added_by_trusted_proxy(client, stub, settings):
+    settings.BRIEF_RATE_LIMIT_PER_MIN = 1
+    settings.TRUSTED_PROXY_COUNT = 1
     first = post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR="1.1.1.1, 9.9.9.9")
     spoofed = post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR="2.2.2.2, 9.9.9.9")
     other = post_json(client, API, VALID_INPUT, HTTP_X_FORWARDED_FOR="8.8.8.8")
     assert first.status_code == 200
     assert spoofed.status_code == 429  # same real client, spoofed left-most entry
     assert other.status_code == 200
+
+
+def test_generate_rejects_non_string_values(client, stub):
+    response = post_json(client, API, {**VALID_INPUT, "brand_name": ["Glow", "Lab"]})
+    assert response.status_code == 400
+    assert "brand_name" in response.json()["error"]["fields"]
+    assert stub.calls == []
+
+
+def test_page_sends_content_security_policy(client):
+    csp = client.get("/").headers["Content-Security-Policy"]
+    assert "script-src 'self'" in csp
+    assert "frame-ancestors 'none'" in csp
 
 
 def test_demo_source_is_reported(client, monkeypatch):

@@ -55,6 +55,10 @@ def generate_brief(request: HttpRequest) -> JsonResponse:
     if data is None:
         return _error(400, "invalid_input", "Send the form as a JSON object.", fields={})
 
+    non_strings = {k: ["Expected text."] for k, v in data.items() if not isinstance(v, str)}
+    if non_strings:
+        return _error(400, "invalid_input", "Check the highlighted fields.", fields=non_strings)
+
     form = BriefRequestForm(data=data)
     if not form.is_valid():
         fields = {name: [str(e) for e in errors] for name, errors in form.errors.items()}

@@ -6,7 +6,7 @@
 
   var API_URL = "/api/briefs/";
   var EVENTS_URL = "/api/events/";
-  var REQUEST_TIMEOUT_MS = 90000;
+  var REQUEST_TIMEOUT_MS = 95000; // > server worst case (40s x 2 attempts)
   var FIELDS = ["brand_name", "platform", "goal", "tone", "product_note"];
   var LABELS = {
     platform: { instagram: "Instagram", tiktok: "TikTok", ugc: "UGC" },
@@ -26,7 +26,10 @@
   var $submit = $("#generate-btn");
   var $result = $("#result");
   var $live = $("#live-region");
-  var state = { status: "empty", lastPayload: null, requestId: null, edited: false, pending: null };
+  // lastPayload: inputs that produced the brief on screen (used by Copy).
+  // retryPayload: inputs of the last failed request (used by "Try again").
+  var state = { status: "empty", hasBrief: false, lastPayload: null, retryPayload: null,
+    requestId: null, edited: false, pending: null };
 
   // ---------------------------------------------------------------- helpers
   function getCookie(name) {
@@ -107,8 +110,7 @@
     var $field = $form.find('[data-field="' + name + '"]');
     $field.find(".ds-form-error").text(message).prop("hidden", !message);
     $field.toggleClass("fieldset-invalid", !!message);
-    $field.find(".ds-input, .ds-textarea").attr("aria-invalid", message ? "true" : "false");
-    if ($field.is("fieldset")) { $field.attr("aria-invalid", message ? "true" : "false"); }
+    $field.find(".ds-input, .ds-textarea, .ds-option-card__input").attr("aria-invalid", message ? "true" : "false");
   }
 
   function showFieldErrors(errors) {
@@ -146,29 +148,55 @@
     window.scrollTo({ top: Math.max(top, 0), behavior: reduce ? "auto" : "smooth" });
   }
 
+  function focusResultHeading() {
+    var heading = document.getElementById("result-heading");
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+  }
+
+  // Replacing a brief the user has edited loses their work: ask first.
+  function okToReplaceBrief() {
+    return !(state.hasBrief && state.edited) ||
+      window.confirm("Replace your edited brief? Your changes will be lost.");
+  }
+
+  // Validate, then generate. Used by the form submit and Regenerate.
+  function submitForm() {
+    clearErrors();
+    var payload = readForm();
+    var errors = validate(payload);
+    if (Object.keys(errors).length) {
+      showFieldErrors(errors);
+      return;
+    }
+    if (!okToReplaceBrief()) { return; }
+    generate(payload);
+  }
+
   // ---------------------------------------------------------------- request
   function generate(payload) {
     if (state.pending) { return; } // block double submits
-    var previous = state.status;
-    state.lastPayload = payload;
+    var focusWasInside = $.contains($form[0], document.activeElement) || $.contains($result[0], document.activeElement);
     setState("loading");
+    // Loading disables the focused control; park focus on the result heading instead of <body>.
+    if (focusWasInside) { focusResultHeading(); }
     revealResult();
-    announce("Generating your brief. This usually takes 10 to 20 seconds.");
+    announce("Generating your brief. This can take up to 30 seconds.");
 
     state.pending = $.ajax({ url: API_URL, method: "POST", data: JSON.stringify(payload), timeout: REQUEST_TIMEOUT_MS })
       .done(function (data) {
+        state.lastPayload = payload;
+        state.hasBrief = true;
         renderBrief(data.brief, payload, data.meta || {});
         setState("success");
         announce("Your brief is ready. You can edit any text, then copy it.");
-        var heading = document.getElementById("result-heading");
-        heading.setAttribute("tabindex", "-1");
-        heading.focus({ preventScroll: true });
+        focusResultHeading();
         revealResult();
       })
       .fail(function (xhr, textStatus) {
         var error = (xhr.responseJSON && xhr.responseJSON.error) || {};
         if (xhr.status === 400 && error.fields && Object.keys(error.fields).length) {
-          setState(previous === "loading" ? "empty" : previous);
+          setState(state.hasBrief ? "success" : "empty");
           showFieldErrors(error.fields);
           return;
         }
@@ -178,8 +206,11 @@
             ? "This is taking longer than usual. Please try again."
             : "We couldn't reach the server. Check your connection and try again.";
         }
+        state.retryPayload = payload;
         $("#error-message").text(message);
         setState("error");
+        announce("Something went wrong. " + message);
+        $("#retry-btn").trigger("focus");
       })
       .always(function () { state.pending = null; });
   }
@@ -188,7 +219,8 @@
   function editable(tag, text, key, label) {
     return $("<" + tag + ">")
       .addClass("editable")
-      .attr({ contenteditable: EDIT_MODE, "data-key": key, "aria-label": label + " (editable)", spellcheck: "true" })
+      .attr({ contenteditable: EDIT_MODE, role: "textbox", "aria-multiline": tag === "p" ? "true" : "false",
+        "data-key": key, "aria-label": label, spellcheck: "true" })
       .text(text);
   }
 
@@ -213,7 +245,7 @@
     state.requestId = meta.request_id || null;
     state.edited = false;
 
-    $("#brief-title").attr({ contenteditable: EDIT_MODE, "aria-label": "Campaign title (editable)" }).text(brief.campaign_title);
+    $("#brief-title").attr("contenteditable", EDIT_MODE).text(brief.campaign_title);
     $("#demo-badge").prop("hidden", meta.source !== "demo");
 
     var $tags = $("#brief-tags").empty();
@@ -307,8 +339,7 @@
   function copyBrief() {
     var text = briefAsText();
     var done = function () {
-      toast("Brief copied to clipboard");
-      announce("Brief copied to clipboard.");
+      toast("Brief copied to clipboard"); // the toast is role="status", so it is announced
       track("brief_copied");
     };
     var fail = function () { toast("Couldn't copy automatically. Select the text and copy it manually.", true); };
@@ -324,14 +355,7 @@
   // ---------------------------------------------------------------- events
   $form.on("submit", function (e) {
     e.preventDefault();
-    clearErrors();
-    var payload = readForm();
-    var errors = validate(payload);
-    if (Object.keys(errors).length) {
-      showFieldErrors(errors);
-      return;
-    }
-    generate(payload);
+    submitForm();
   });
 
   $form.on("change input", "input, textarea", function () {
@@ -344,12 +368,12 @@
   });
 
   $("#retry-btn").on("click", function () {
-    if (state.lastPayload) { generate(state.lastPayload); }
+    if (state.retryPayload) { generate(state.retryPayload); }
   });
 
   $("#regenerate-btn").on("click", function () {
     track("brief_regenerated");
-    generate(readForm());
+    submitForm();
   });
 
   $("#copy-btn").on("click", copyBrief);

@@ -22,5 +22,7 @@ services:
         value: claude-opus-5-5
       - key: BRIEF_GENERATOR
         value: auto
+      - key: TRUSTED_PROXY_COUNT
+        value: "1" # Render's proxy appends the client IP to X-Forwarded-For
       - key: BRIEF_RATE_LIMIT_PER_MIN
         value: "10"
