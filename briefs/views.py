@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST, require_safe
 
 from . import ratelimit
 from .analytics import CLIENT_EVENTS, track
@@ -31,14 +31,14 @@ def _read_json(request: HttpRequest) -> dict[str, Any] | None:
     return data if isinstance(data, dict) else None
 
 
-@require_GET
+@require_safe
 @ensure_csrf_cookie
 def index(request: HttpRequest) -> HttpResponse:
     context = {"platforms": PLATFORMS, "goals": GOALS, "tones": TONES}
     return render(request, "briefs/index.html", context)
 
 
-@require_GET
+@require_safe
 def healthz(request: HttpRequest) -> HttpResponse:
     return HttpResponse("ok", content_type="text/plain")
 

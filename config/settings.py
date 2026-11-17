@@ -96,7 +96,7 @@ if not DEBUG:
 # --- Brief generator ---
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-5-5")
-ANTHROPIC_TIMEOUT_SECONDS = float(os.environ.get("ANTHROPIC_TIMEOUT_SECONDS", "45"))
+ANTHROPIC_TIMEOUT_SECONDS = float(os.environ.get("ANTHROPIC_TIMEOUT_SECONDS", "40"))
 BRIEF_GENERATOR = os.environ.get("BRIEF_GENERATOR", "auto")  # auto | anthropic | demo
 BRIEF_RATE_LIMIT_PER_MIN = int(os.environ.get("BRIEF_RATE_LIMIT_PER_MIN", "10"))
 

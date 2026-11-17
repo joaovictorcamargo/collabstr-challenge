@@ -1,0 +1,26 @@
+# One-click deploy: Render dashboard → New → Blueprint → pick this repo.
+services:
+  - type: web
+    name: collabstr-brief-generator
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    # gthread workers: generation is I/O-bound (waiting on the LLM), so threads keep
+    # several requests in flight. Timeout > Anthropic timeout x (retries + 1) = 80s.
+    startCommand: gunicorn config.wsgi --bind 0.0.0.0:$PORT --worker-class gthread --workers 2 --threads 8 --timeout 90
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false # set in the dashboard; without it the app runs in labelled demo mode
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: BRIEF_GENERATOR
+        value: auto
+      - key: BRIEF_RATE_LIMIT_PER_MIN
+        value: "10"
