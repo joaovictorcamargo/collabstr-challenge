@@ -24,7 +24,7 @@
 | F12 | Done | Live: 4 scripted cases + 3 browser runs, all valid (~16s, ~$0.035/brief) |
 | T1, T2 | Done | Django 5.2; HTML/CSS + jQuery 3.7.1 |
 | T3 | Done | DS tokens/components; deviations documented in `design-notes.md` |
-| T4, T5 | Done | No DB, typed errors, rate limit, CSP; 104 tests, Ruff, mypy strict, CI |
+| T4, T5 | Done | No DB, typed errors, rate limit, CSP; 107 tests, Ruff, mypy strict, CI |
 | D1–D7 | Done | `README.md` sections 1–7 |
 | AC1 | Done | ≥3 angles/criteria enforced server-side |
 | AC2 | Done | Field errors client + server, first invalid field focused |

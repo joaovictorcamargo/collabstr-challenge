@@ -18,3 +18,4 @@
 | 14 | Content-Security-Policy via a 20-line middleware | No inline scripts, so `script-src 'self'` is free hardening against XSS. | Google Fonts allowed explicitly. |
 | 15 | Confirm before Regenerate discards edits | Edits are the user's work; losing them silently is the worst failure of the chosen interaction. | One native confirm dialog. |
 | 16 | Placeholder counter next to Copy | Live briefs contain many `[placeholders]`; a brand pasting `[discount code]` to creators is the most likely real-world failure of the chosen interaction. | Counts brackets with a regex; a literal bracket in brand text would be counted too. |
+| 17 | Global daily generation cap + `/healthz` exempt from HTTPS redirect | A public demo link spends real API credits; the cap bounds the worst case. Platform health probes may use plain HTTP. | Cap is per process and resets on restart; set a hard spend limit in the Anthropic Console too. |

@@ -37,7 +37,7 @@ Django view ─ rate limit (per IP) ─ BriefRequestForm (validation)
 - **Model:** `claude-opus-5-5` at `effort: "low"`, set by `ANTHROPIC_MODEL`. I chose writing quality first for a short task. The model is one env var, so a cheaper or faster model can be A/B tested against adoption rate rather than guessed.
 - **Prompting:** the system prompt holds platform rules (Reels vs. native TikTok vs. UGC deliverables and usage rights), goal rules (each with a measurable signal), tone, and size limits. User inputs arrive in XML tags and are HTML-escaped, so they can't close a tag. The model is told to treat them as data, never invent prices or claims (it uses `[placeholders]` instead), and never use protected traits in creator criteria.
 - **Reliability:** 40s timeout plus 1 SDK retry (browser waits 95s, gunicorn 90s, so the client never gives up first); `stop_reason` is checked (a truncated or refused reply is an error, never shown half-done); server-side **refusal fallback** (`fallbacks: "default"`), so a false-positive safety decline re-runs on another model instead of failing; unusable output becomes a 502, while outages and config errors (4xx from Anthropic, logged at ERROR) become a 503, each with a plain-language message; gunicorn uses threaded workers because the work is I/O-bound.
-- **Safety & security:** the API key stays on the server; CSRF on every POST; per-IP rate limit (10/min) caps spend and abuse; input length limits and control-character stripping; model output is rendered only with jQuery `.text()` (no HTML injection); `X-Forwarded-For` is only trusted for the configured number of proxy hops (`TRUSTED_PROXY_COUNT`), so a spoofed header can't dodge the limit; production settings set a Content-Security-Policy (`script-src 'self'`), HSTS, secure cookies, `nosniff`, and `X-Frame-Options: DENY`; no user data is stored.
+- **Safety & security:** the API key stays on the server; CSRF on every POST; per-IP rate limit (10/min) plus a global daily cap (`BRIEF_DAILY_LIMIT`, about $7/day per worker at measured cost) limits spend and abuse on a public URL. The cap lives in memory and resets on restart, so the hard ceiling belongs in the Anthropic Console spend limit; input length limits and control-character stripping; model output is rendered only with jQuery `.text()` (no HTML injection); `X-Forwarded-For` is only trusted for the configured number of proxy hops (`TRUSTED_PROXY_COUNT`), so a spoofed header can't dodge the limit; production settings set a Content-Security-Policy (`script-src 'self'`), HSTS, secure cookies, `nosniff`, and `X-Frame-Options: DENY`; no user data is stored.
 - **Implemented vs. production:**
 
   | Now | For production |
@@ -60,7 +60,7 @@ Django view ─ rate limit (per IP) ─ BriefRequestForm (validation)
 ## 4. Validation and iteration
 
 **What was tested**
-- 104 automated tests (`uv run pytest`): form validation, the `Brief` schema and its strictness for structured outputs, prompt building (including tag-injection escaping), every generator failure mode (refusal, truncation, bad JSON, fewer than 3 angles or criteria, timeout, 429, 5xx, 400/401/404, unexpected SDK errors), API status codes, CSRF enforcement, rate limiting (including spoofed and rotated `X-Forwarded-For`), non-string JSON values, CSP header, and events. The Claude client is faked; tests never call the API.
+- 107 automated tests (`uv run pytest`): form validation, the `Brief` schema and its strictness for structured outputs, prompt building (including tag-injection escaping), every generator failure mode (refusal, truncation, bad JSON, fewer than 3 angles or criteria, timeout, 429, 5xx, 400/401/404, unexpected SDK errors), API status codes, CSRF enforcement, rate limiting (including spoofed and rotated `X-Forwarded-For`), non-string JSON values, CSP header, and events. The Claude client is faked; tests never call the API.
 - Ruff + mypy (strict) clean; CI workflow runs all of it plus `collectstatic` and `check --deploy`.
 - Browser QA (built-in browser): validation messages and focus, keyboard-only selection, loading lock (no double submit), success render, editing and copy output, the real error path (an invalid API key hits Anthropic, gets 401, and the UI shows a friendly 503 message with inputs kept), 375px layout with no horizontal scroll, a scripted WCAG contrast check, labels, heading order.
 - Production smoke test: gunicorn + WhiteNoise serving hashed static files, `/healthz`, security headers.
@@ -108,6 +108,7 @@ uv run mypy .
 | `BRIEF_GENERATOR` | `auto` | `auto` / `anthropic` / `demo` |
 | `BRIEF_RATE_LIMIT_PER_MIN` | `10` | Per-IP limit |
 | `TRUSTED_PROXY_COUNT` | `0` | Proxies appending to `X-Forwarded-For` (Render: `1`) |
+| `BRIEF_DAILY_LIMIT` | `200` | Max generations per day per worker process (spend guard) |
 
 ## 6. AI tools
 
