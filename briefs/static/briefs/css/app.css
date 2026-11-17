@@ -28,6 +28,10 @@
   --color-text-success: var(--green-700);
   --color-text-error: var(--red-600);
   --color-text-warning: var(--orange-600);
+  /* Accessibility deviation: DS pink-500/700 text is <4.5:1 on light surfaces at small sizes.
+     Used only for small brand-coloured text. See docs/design-notes.md. */
+  --color-text-brand-strong: #c2185b;
+  --orange-700: #c4320a;
   --color-border-default: var(--gray-300);
   --color-border-subtle: var(--gray-200);
   --color-border-strong: var(--gray-400);
@@ -65,7 +69,7 @@ body {
   background: var(--gray-50);
 }
 h1, h2, h3, h4, p { margin: 0; }
-ul { margin: 0; padding: 0; }
+ul, ol { margin: 0; padding: 0; }
 svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
       stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 button { font: inherit; }
@@ -181,8 +185,8 @@ button { font: inherit; }
 /* ---------- Badges & tags ---------- */
 .ds-badge { display: inline-flex; align-items: center; font-size: var(--font-size-xs); font-weight: 600;
   border-radius: 10px; padding: 2px var(--space-2); }
-.ds-badge--brand { background: var(--pink-100); color: var(--pink-700); }
-.ds-badge--warning { background: var(--color-bg-warning); color: var(--color-text-warning); cursor: help; }
+.ds-badge--brand { background: var(--pink-100); color: var(--color-text-brand-strong); }
+.ds-badge--warning { background: var(--color-bg-warning); color: var(--orange-700); cursor: help; }
 .tag-row { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .ds-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-subtle); color: var(--gray-700); border-radius: var(--radius-full);
@@ -232,6 +236,7 @@ button { font: inherit; }
 .brief__body { padding: var(--space-2) var(--space-6) var(--space-6); }
 .brief-section { padding-top: var(--space-6); }
 .brief-section + .brief-section { margin-top: var(--space-2); }
+.two-col > .brief-section { margin-top: 0; }
 .brief-section__title { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.06em; color: var(--color-text-subtlest); margin-bottom: var(--space-3); }
 .brief-text { color: var(--color-text-default); }
@@ -251,7 +256,7 @@ button { font: inherit; }
   list-style: none; counter-reset: angle; }
 .angle { border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: var(--space-4);
   background: var(--bw-white); display: flex; flex-direction: column; gap: var(--space-2); }
-.angle__num { font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-brand); }
+.angle__num { font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-brand-strong); }
 .angle__title { font-weight: 600; color: var(--color-text-default); }
 .angle__hook { font-size: var(--font-size-sm); color: var(--color-text-default); font-style: italic;
   background: var(--color-bg-secondary); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }

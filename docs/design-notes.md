@@ -24,3 +24,9 @@ Tokens copied into `briefs/static/briefs/css/app.css` (names kept so they map 1:
 - **Motion:** fast 150ms, normal 300ms; `ease-out cubic-bezier(0,0,.2,1)`; shimmer for skeletons; respect reduced motion.
 - **Platform colours:** Instagram `#D756FF`, TikTok `#FF5FA3`.
 - **Icons:** Lucide (inline SVG, `aria-hidden`).
+
+## Deviations (accessibility)
+- Small brand-coloured text (`Beta` badge, "Angle n" labels) uses `#C2185B` instead of `--pink-700`/`--pink-500`:
+  the DS values measure 3.0:1 and 2.8:1 against their backgrounds, below WCAG AA 4.5:1 for 12px text.
+- The "Demo content" warning badge uses `--orange-700` text instead of `--orange-600` (3.4:1 → ~5.4:1).
+- Brand pink stays as-is for non-text accents (focus ring, icon tiles, bullets, key-message bar).

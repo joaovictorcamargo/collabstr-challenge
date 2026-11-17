@@ -119,14 +119,18 @@ class DemoBriefGenerator:
 
     def generate(self, inputs: BriefInputs) -> Brief:
         brand, platform = inputs.brand_name, inputs.platform_label
-        product = inputs.product_note or f"{brand}'s product"
+        note = inputs.product_note
+        if note and not note[:2].isupper():  # "New serum" -> "new serum" mid-sentence
+            note = note[0].lower() + note[1:]
+        product = note or f"{brand}'s product"
         voice = self._VOICE[inputs.tone]
         signal = self._SIGNAL[inputs.goal]
         return Brief.model_validate(
             {
                 "campaign_title": f"{brand} x Creators: {inputs.goal_label} on {platform}",
                 "summary": (
-                    f"A {platform} campaign for {brand} focused on {inputs.goal_label.lower()}. "
+                    f"{'An' if platform == 'Instagram' else 'A'} {platform} campaign for {brand} "
+                    f"focused on {inputs.goal_label.lower()}. "
                     f"Creators show {product} in real, everyday moments in a {voice} voice."
                 ),
                 "objective": f"{inputs.goal_label}: measure success by {signal}.",

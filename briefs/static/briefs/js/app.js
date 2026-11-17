@@ -138,12 +138,21 @@
     return errors;
   }
 
+  // On stacked (mobile/tablet) layouts the result sits below the form: bring it into view.
+  function revealResult() {
+    if (!window.matchMedia("(max-width: 1023px)").matches) { return; }
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var top = $result.offset().top - $(".ds-nav-topbar").outerHeight() - 12;
+    window.scrollTo({ top: Math.max(top, 0), behavior: reduce ? "auto" : "smooth" });
+  }
+
   // ---------------------------------------------------------------- request
   function generate(payload) {
     if (state.pending) { return; } // block double submits
     var previous = state.status;
     state.lastPayload = payload;
     setState("loading");
+    revealResult();
     announce("Generating your brief. This usually takes 10 to 20 seconds.");
 
     state.pending = $.ajax({ url: API_URL, method: "POST", data: JSON.stringify(payload), timeout: REQUEST_TIMEOUT_MS })
@@ -154,9 +163,7 @@
         var heading = document.getElementById("result-heading");
         heading.setAttribute("tabindex", "-1");
         heading.focus({ preventScroll: true });
-        if (window.matchMedia("(max-width: 1023px)").matches) {
-          $result[0].scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        revealResult();
       })
       .fail(function (xhr, textStatus) {
         var error = (xhr.responseJSON && xhr.responseJSON.error) || {};
