@@ -9,3 +9,6 @@ staticfiles/
 .ruff_cache/
 .pytest_cache/
 .DS_Store
+
+# Private local notes (never publish)
+docs/progress.md

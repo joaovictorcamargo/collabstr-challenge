@@ -3,6 +3,7 @@
 AI Brief Generator for Collabstr: Django backend + jQuery single page + Claude for generation.
 
 ## Read first
+- `docs/progress.md` (local only, git-ignored; may be absent) — current state and next steps. **Start here when resuming.**
 - `docs/requirements.md` — requirement IDs (F*, T*, D*, AC*). Source of truth.
 - `docs/spec.md` — API contract, `Brief` schema, UI states.
 - `docs/architecture.md`, `docs/decisions.md` — structure and why.
