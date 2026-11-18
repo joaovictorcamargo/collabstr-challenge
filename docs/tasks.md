@@ -24,7 +24,7 @@
 | F12 | Done | Live: 4 scripted cases + 3 browser runs, all valid (~16s, ~$0.035/brief) |
 | T1, T2 | Done | Django 5.2; HTML/CSS + jQuery 3.7.1 |
 | T3 | Done | DS tokens/components; deviations documented in `design-notes.md` |
-| T4, T5 | Done | No DB, typed errors, rate limit, CSP; 107 tests, Ruff, mypy strict, CI |
+| T4, T5 | Done | No DB, typed errors, rate limit, CSP; 111 tests, Ruff (incl. security rules), mypy strict, pip-audit, CI |
 | D1–D7 | Done | `README.md` sections 1–7 |
 | AC1 | Done | ≥3 angles/criteria enforced server-side |
 | AC2 | Done | Field errors client + server, first invalid field focused |
@@ -33,5 +33,7 @@
 | AC5 | Done | Editable sections, one-click copy, toast |
 | AC6 | Done | Keyboard, labels, live region, focus management, 375px, contrast ≥4.5:1 |
 | AC7 | Done | `.text()` only; reviewed |
-| AC8 | Done | Key server-side, CSRF test, rate-limit tests |
-| X1–X3 | Owner | Needs GitHub account, hosting account + API key, Loom |
+| AC8 | Done | Key server-side, CSRF test, rate-limit tests; spoofing re-tested on the live site |
+| X1 | Done | https://github.com/joaovictorcamargo/collabstr-challenge (public, CI green) |
+| X2 | Done | https://collabstr-brief-generator.onrender.com (real Claude output verified) |
+| X3 | Owner | Loom to record with `docs/demo-script.md` |
