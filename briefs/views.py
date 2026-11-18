@@ -128,18 +128,3 @@ def log_event(request: HttpRequest) -> HttpResponse:
         return _error(400, "invalid_input", "Unknown event.")
     track(data["event"], request_id=data["request_id"])
     return HttpResponse(status=204)
-
-
-# TEMPORARY: diagnose which proxy header carries the client IP on Render. Remove after.
-@require_safe
-def debug_ip(request: HttpRequest) -> JsonResponse:
-    names = [
-        "HTTP_X_FORWARDED_FOR",
-        "HTTP_X_REAL_IP",
-        "HTTP_TRUE_CLIENT_IP",
-        "HTTP_CF_CONNECTING_IP",
-        "HTTP_FORWARDED",
-        "HTTP_X_ENVOY_EXTERNAL_ADDRESS",
-        "REMOTE_ADDR",
-    ]
-    return JsonResponse({n: request.META.get(n) for n in names})

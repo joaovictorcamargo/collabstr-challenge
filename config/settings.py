@@ -107,6 +107,11 @@ BRIEF_DAILY_LIMIT = int(os.environ.get("BRIEF_DAILY_LIMIT", "200"))
 # Number of reverse proxies in front of the app that append to X-Forwarded-For.
 # 0 = ignore the header (direct traffic, local dev). Render: 1.
 TRUSTED_PROXY_COUNT = int(os.environ.get("TRUSTED_PROXY_COUNT", "0"))
+# Request header (Django META name) set by an edge proxy that overwrites client values.
+# Render sits behind Cloudflare, which sets CF-Connecting-IP; verified on the live service.
+CLIENT_IP_HEADER = os.environ.get(
+    "CLIENT_IP_HEADER", "HTTP_CF_CONNECTING_IP" if os.environ.get("RENDER") else ""
+)
 
 LOGGING = {
     "version": 1,

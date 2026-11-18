@@ -189,6 +189,47 @@ def test_healthcheck_is_exempt_from_https_redirect(client, settings):
     assert client.get("/").status_code == 301
 
 
+def test_rate_limit_uses_trusted_client_ip_header(client, stub, settings):
+    # Render: Cloudflare sets CF-Connecting-IP and overwrites client-sent values,
+    # while X-Forwarded-For keeps whatever the client prepended.
+    settings.BRIEF_RATE_LIMIT_PER_MIN = 1
+    settings.CLIENT_IP_HEADER = "HTTP_CF_CONNECTING_IP"
+    settings.TRUSTED_PROXY_COUNT = 1
+    first = post_json(
+        client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="189.0.0.1", HTTP_X_FORWARDED_FOR="1.1.1.1"
+    )
+    spoofed = post_json(
+        client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="189.0.0.1", HTTP_X_FORWARDED_FOR="2.2.2.2"
+    )
+    other_client = post_json(client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="200.0.0.2")
+    assert first.status_code == 200
+    assert spoofed.status_code == 429  # a forged X-Forwarded-For can't buy a fresh bucket
+    assert other_client.status_code == 200
+
+
+def test_client_ip_header_ignored_unless_configured(client, stub, settings):
+    # Without Cloudflare in front, a client could send CF-Connecting-IP itself.
+    settings.BRIEF_RATE_LIMIT_PER_MIN = 1
+    settings.CLIENT_IP_HEADER = ""
+    settings.TRUSTED_PROXY_COUNT = 0
+    assert post_json(client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="1.1.1.1").status_code == 200
+    rotated = post_json(client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="2.2.2.2")
+    assert rotated.status_code == 429
+
+
+def test_malformed_client_ip_header_falls_back(client, stub, settings):
+    settings.BRIEF_RATE_LIMIT_PER_MIN = 1
+    settings.CLIENT_IP_HEADER = "HTTP_CF_CONNECTING_IP"
+    settings.TRUSTED_PROXY_COUNT = 0
+    assert post_json(client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="not-an-ip").status_code == 200
+    again = post_json(client, API, VALID_INPUT, HTTP_CF_CONNECTING_IP="also<bad>")
+    assert again.status_code == 429  # both fell back to REMOTE_ADDR, same bucket
+
+
+def test_temporary_debug_endpoint_is_gone(client):
+    assert client.get("/debug-ip-temp").status_code == 404
+
+
 def test_rate_limit_ignores_forwarded_for_without_trusted_proxy(client, stub, settings):
     settings.BRIEF_RATE_LIMIT_PER_MIN = 1
     settings.TRUSTED_PROXY_COUNT = 0

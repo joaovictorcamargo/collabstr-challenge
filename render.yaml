@@ -22,8 +22,10 @@ services:
         value: claude-opus-5-5
       - key: BRIEF_GENERATOR
         value: auto
+      - key: CLIENT_IP_HEADER
+        value: HTTP_CF_CONNECTING_IP # set by Cloudflare in front of Render; clients can't forge it
       - key: TRUSTED_PROXY_COUNT
-        value: "1" # Render's proxy appends the client IP to X-Forwarded-For
+        value: "3" # fallback only: X-Forwarded-For is "client, cloudflare, render-internal"
       - key: BRIEF_DAILY_LIMIT
         value: "200" # spend guard: ~200 briefs/day per worker (~$7 at measured cost)
       - key: BRIEF_RATE_LIMIT_PER_MIN
