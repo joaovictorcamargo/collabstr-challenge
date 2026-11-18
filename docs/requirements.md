@@ -44,11 +44,11 @@ Source of truth: the "Collabstr Product Engineer Project" brief. Each requiremen
 
 ## Deliverables (sent by the candidate)
 
-| ID | Deliverable | Who |
+| ID | Deliverable | Delivered |
 |----|-------------|-----|
-| X1 | Public GitHub repository with the README. | Repo prepared here; publishing needs the owner's GitHub account. |
-| X2 | Publicly accessible live implementation. | Deploy config prepared here; deploying needs a hosting account and an Anthropic API key. |
-| X3 | Loom demo under 1 minute (core flow plus one product decision). | Owner records it. A script is in `docs/demo-script.md`. |
+| X1 | Public GitHub repository with the README. | https://github.com/joaovictorcamargo/collabstr-challenge |
+| X2 | Publicly accessible live implementation. | https://collabstr-brief-generator.onrender.com |
+| X3 | Loom demo under 1 minute (core flow plus one product decision). | https://www.loom.com/share/2e68fc7bf39a4341b4a4e36dfb9d4324 |
 
 ## Constraints
 

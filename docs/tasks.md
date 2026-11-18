@@ -10,7 +10,7 @@
 - [x] Independent code review and fixes (see decisions 13–15)
 - [x] Delivery: README write-up, deploy config (Render/Procfile), CI, demo script
 - [x] Live Claude integration verified (scripted cases + browser)
-- [ ] Owner: deploy, push public repo, record Loom, email links
+- [x] Deployed, public repo pushed, Loom recorded
 
 ## Requirement verification
 
@@ -36,4 +36,4 @@
 | AC8 | Done | Key server-side, CSRF test, rate-limit tests; spoofing re-tested on the live site |
 | X1 | Done | https://github.com/joaovictorcamargo/collabstr-challenge (public, CI green) |
 | X2 | Done | https://collabstr-brief-generator.onrender.com (real Claude output verified) |
-| X3 | Owner | Loom to record with `docs/demo-script.md` |
+| X3 | Done | https://www.loom.com/share/2e68fc7bf39a4341b4a4e36dfb9d4324 |

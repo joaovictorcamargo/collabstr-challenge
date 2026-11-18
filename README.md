@@ -4,7 +4,7 @@ A brand gives four inputs (brand, platform, goal, tone), plus an optional produc
 15 seconds it gets back an editable campaign brief, content angles, and creator selection criteria,
 and can copy the result straight into a campaign or a message to creators.
 
-**Live demo:** [collabstr-brief-generator.onrender.com](https://collabstr-brief-generator.onrender.com) (free Render instance: the first load after a quiet spell can take ~50 s while it wakes up) · **Repo:** [github.com/joaovictorcamargo/collabstr-challenge](https://github.com/joaovictorcamargo/collabstr-challenge) · **Loom:** _add URL_ · **Stack:** Django 5.2 · jQuery 3.7 · Claude (Anthropic API)
+**Live demo:** [collabstr-brief-generator.onrender.com](https://collabstr-brief-generator.onrender.com) (free Render instance: the first load after a quiet spell can take ~50 s while it wakes up) · **Repo:** [github.com/joaovictorcamargo/collabstr-challenge](https://github.com/joaovictorcamargo/collabstr-challenge) · **Loom demo:** [watch on Loom](https://www.loom.com/share/2e68fc7bf39a4341b4a4e36dfb9d4324) · **Stack:** Django 5.2 · jQuery 3.7 · Claude (Anthropic API)
 
 ---
 
@@ -116,7 +116,7 @@ uv run mypy .
 - Built with Claude Code (Claude Opus 5.5), working from written specs first ([docs/](docs/): requirements, PRD, spec, architecture, decisions) and tests before code.
 - Used for: reading the design system page and extracting its tokens, drafting the specs, writing the code and tests, browser QA, and an independent review pass by a separate agent. Its findings (4xx error mapping, minimum angle and criteria counts, `X-Forwarded-For` trust, regenerate state bugs, focus and ARIA issues, CSP) were fixed with tests and re-checked in the browser.
 - Checked by running, not by trusting: the test suite, lint/types, the production build, and browser checks listed above; the jQuery SRI hash was compared with the official CDN's; the SDK parameters were checked against the installed `anthropic` package's signatures.
-- _Candidate: add a line on what you personally reviewed before submitting._
+- **Tested by me personally** on the live app: brief generation end to end, Instagram and TikTok campaigns, editing content in place, copying the brief to the clipboard, regeneration, and prompt-injection resistance (instructions hidden in the product note were ignored, and a normal brief came back).
 
 ## 7. Tradeoffs and not done in the timebox
 
